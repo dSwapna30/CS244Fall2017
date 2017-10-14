@@ -1,12 +1,12 @@
 #include "Arduino.h"
 #include "ESP8266WiFi.h"
 #include "ESP8266HTTPClient.h"
-const char* ssid = "UCInet Mobile Access";
+#include "secret.h"
+
+// Create "secret.h" for "ssid" and "host"
 
 HTTPClient http;
     
-String host = "http://169.234.118.14/assignment1/arduino.php";
-
 int t = 1; // time
 int data = 1;
 
