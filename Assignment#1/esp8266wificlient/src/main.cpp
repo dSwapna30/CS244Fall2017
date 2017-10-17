@@ -38,8 +38,6 @@ void setup()
 }
 
 void loop() {
-    t++;
-    data = data * 2;
     host = host + "?time=" + t + "&data=" + data;
     http.begin(host.c_str());
     int httpCode = http.GET();
@@ -58,6 +56,8 @@ void loop() {
 
     http.end();
 
+    t = t + 1;
+    data = data * 2;
     delay(1000);
 }
 
