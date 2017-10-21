@@ -3,14 +3,20 @@
 #include "ESP8266HTTPClient.h"
 #include "secret.h"
 #include "MAX30105.h"
+#include "Wire.h"
+
+int counter = 0;
+int loop_sample = 0;
 
 // Create "secret.h" for "ssid" and "host"
 
 HTTPClient http;
-MAX30105 max;
-    
+MAX30105 MAX;
 
 void sensorSetup(byte powerLevel){
+      Serial.print("setup sensor to: ");
+      Serial.println(String(powerLevel));
+      Serial.println();
 
       byte sampleAverage = 4;
       byte ledMode = 2;
@@ -18,21 +24,21 @@ void sensorSetup(byte powerLevel){
       int pulseWidth = 411; //Options: 69, 118, 215, 411
       int adcRange = 2048;
 
-    max.setup(powerLevel, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange);
+      MAX.setup(powerLevel, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange);
 }
 
 void sendtoWebServer(int sample){
     uint32_t IR;
-    uint32_t RED;
+    uint32_t Red;
 
-    max.check();
-    while(max.available()){
-        IR=getir();
-        RED=getred();
+    MAX.check();
+    if(MAX.available()){
+        IR = MAX.getIR();
+        Red = MAX.getRed();
     }
     
     
-    host = host + "?sample=" + sample + "&IR=" + IR + "&RED" + RED;
+    String host = base_host + "?sample=" + sample + "&IR=" + IR + "&RED=" + Red;
     http.begin(host.c_str());
     int httpCode = http.GET();
 
@@ -40,8 +46,10 @@ void sendtoWebServer(int sample){
         Serial.print("POST code: ");
         Serial.println(httpCode);
         if (httpCode == HTTP_CODE_OK) {
-            String payload = http.getString();
-            Serial.println(payload);
+            //String payload = http.getString();
+            //Serial.println(payload);
+            Serial.print(host);
+            Serial.println(" succeeded");
         }
     } else {
         Serial.print("POST failed, error: ");
@@ -65,7 +73,7 @@ void setup()
 
     // Connect to WiFi and show IP Address
     Serial.println("Connecting to WiFi...");
-    WiFi.begin(ssid);
+    WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print(".");
@@ -74,19 +82,39 @@ void setup()
     Serial.println("WiFi connected");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
+    
+    if (!MAX.begin(Wire, I2C_SPEED_STANDARD)) //Use default I2C port, 100kHz speed
+    {
+      Serial.println("MAX30105 was not found. Please check wiring/power.");
+      while (1);
+    }
 
     Serial.println();
-    Serial.println("closing connection");
 }
 
-
-int counter = 0;
 void loop() {
-    if (counter == 0) {sensorSetup(0x02)};
-    if (counter == 6000) {sensorSetup(0x1F)};
-    if (counter == 12000) {sensorSetup(0x7F)};
-    if (counter == 18000) {sensorSetup(0xFF)};
-    sendtoWebServer(counter);
-    counter++;
+    //if (counter == 0) {sensorSetup(0x02);}
+    //if (counter == 6000) {sensorSetup(0x1F);}
+    //if (counter == 12000) {sensorSetup(0x7F);}
+    //if (counter == 18000) {sensorSetup(0xFF);}
+    if (counter == 0) {
+      loop_sample = 0;
+      sensorSetup(0x02);
+    }
+    if (counter == 6) {
+      loop_sample = 0;
+      sensorSetup(0x1F);
+    }
+    if (counter == 12) {
+      loop_sample = 0;
+      sensorSetup(0x7F);
+    }
+    if (counter == 18) {
+      loop_sample = 0;
+      sensorSetup(0xFF);
+    }
+    sendtoWebServer(loop_sample);
+    Serial.println(counter);
+    loop_sample = loop_sample + 1;
+    counter = counter + 1;
 }
-
