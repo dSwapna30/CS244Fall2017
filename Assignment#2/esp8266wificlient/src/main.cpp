@@ -113,8 +113,10 @@ void loop() {
       loop_sample = 0;
       sensorSetup(0xFF);
     }
-    sendtoWebServer(loop_sample);
-    Serial.println(counter);
-    loop_sample = loop_sample + 1;
-    counter = counter + 1;
+	if (counter < 24) {
+      sendtoWebServer(loop_sample);
+      Serial.println(counter);
+      loop_sample = loop_sample + 1;
+      counter = counter + 1;
+	}
 }
