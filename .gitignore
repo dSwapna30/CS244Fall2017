@@ -1,4 +1,4 @@
-data.txt
-data.csv
+*.txt
+*.csv
 *.swp
 *.swo
