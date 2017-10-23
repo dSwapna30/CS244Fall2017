@@ -42,19 +42,17 @@ void sendtoWebServer(int sample){
     http.begin(host.c_str());
     int httpCode = http.GET();
 
-    if (httpCode > 0) {
-        Serial.print("POST code: ");
-        Serial.println(httpCode);
-        if (httpCode == HTTP_CODE_OK) {
-            //String payload = http.getString();
-            //Serial.println(payload);
-            Serial.print(host);
-            Serial.println(" succeeded");
-        }
-    } else {
-        Serial.print("POST failed, error: ");
-        Serial.println(http.errorToString(httpCode).c_str());
-    }
+    //if (httpCode > 0) {
+    //    Serial.print("POST code: ");
+    //    Serial.println(httpCode);
+    //    if (httpCode == HTTP_CODE_OK) {
+    //        Serial.print(host);
+    //        Serial.println(" succeeded");
+    //    }
+    //} else {
+    //    Serial.print("POST failed, error: ");
+    //    Serial.println(http.errorToString(httpCode).c_str());
+    //}
 
     http.end();
 
@@ -73,7 +71,8 @@ void setup()
 
     // Connect to WiFi and show IP Address
     Serial.println("Connecting to WiFi...");
-    WiFi.begin(ssid, password);
+    //WiFi.begin(ssid, password);
+    WiFi.begin(ssid);
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print(".");
@@ -93,30 +92,26 @@ void setup()
 }
 
 void loop() {
-    //if (counter == 0) {sensorSetup(0x02);}
-    //if (counter == 6000) {sensorSetup(0x1F);}
-    //if (counter == 12000) {sensorSetup(0x7F);}
-    //if (counter == 18000) {sensorSetup(0xFF);}
     if (counter == 0) {
-      loop_sample = 0;
-      sensorSetup(0x02);
-    }
-    if (counter == 6) {
-      loop_sample = 0;
-      sensorSetup(0x1F);
-    }
-    if (counter == 12) {
-      loop_sample = 0;
-      sensorSetup(0x7F);
-    }
-    if (counter == 18) {
       loop_sample = 0;
       sensorSetup(0xFF);
     }
-	if (counter < 24) {
+    //if (counter == 6000) {
+    //  loop_sample = 0;
+    //  sensorSetup(0x1F);
+    //}
+    //if (counter == 12000) {
+    //  loop_sample = 0;
+    //  sensorSetup(0x7F);
+    //}
+    //if (counter == 18000) {
+    //  loop_sample = 0;
+    //  sensorSetup(0xFF);
+    //}
+    if (counter < 6000) {
       sendtoWebServer(loop_sample);
-      Serial.println(counter);
-      loop_sample = loop_sample + 1;
-      counter = counter + 1;
-	}
+    }
+    //Serial.println(counter);
+    loop_sample = loop_sample + 1;
+    counter = counter + 1;
 }
