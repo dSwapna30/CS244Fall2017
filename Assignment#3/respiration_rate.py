@@ -84,8 +84,4 @@ if __name__ == "__main__":
     plt.title('Bode plot')
     plt.xlim([0, 1])
     
-    plt.figure(4)
-    plt.plot(fft.fft(IR), 'r', lw=1.3)
-    plt.xlim([0, 10])
-    
     plt.show()
