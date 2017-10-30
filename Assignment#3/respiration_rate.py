@@ -50,8 +50,14 @@ if __name__ == "__main__":
     # Find peak time, peak value and number of peaks in filtered data
     peak_time, peak_val, peak_num = count_peaks(Filtered_IR)
     
+    for i, t in enumerate(peak_time):
+        if i == 0:
+            print(60/t)
+        elif i < len(peak_time)-1:
+            print(60/(peak_time[i+1]-t))
+    
     # Calculate and display resipration rate
-    print('respiration rate: ', peak_num/90*60)
+    print('Average respiration rate: ', peak_num/90*60)
     
     # Display filtered data with peaks (closer look up to small signals)
     plt.figure(1)
@@ -83,5 +89,9 @@ if __name__ == "__main__":
     plt.legend(loc='best')
     plt.title('Bode plot')
     plt.xlim([0, 1])
+    
+    plt.figure(4)
+    plt.plot(fft.fft(IR), 'r', lw=1.3)
+    plt.xlim([0, 10])
     
     plt.show()
