@@ -8,7 +8,7 @@
 #include "SPI.h"
 
 const char* ssid = "UCInet Mobile Access";
-String base_host = "http://169.234.50.128/arduino_simple.php";
+String base_host = "http://169.234.241.150/arduino_simple.php";
 int counter = 0;
 int loop_counter = 0;
 const int counter_limit = 3000;
@@ -32,8 +32,8 @@ void sendtoWebServer(int c){
     for (int i = 0; i < send_counter; i++) {
       body_data = body_data + String(c + i) + "," + String(x[i]) + "," + String(y[i]) + "," + String(z[i]) + "\n\r";
     }
-    Serial.println(body_data);
-    Serial.println(counter);
+    //Serial.println(body_data);
+    //Serial.println(counter);
     
     http.begin(base_host.c_str());
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -78,8 +78,14 @@ void setup()
     Serial.println("WiFi connected");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
-    
-    //Call .begin() to configure the IMU
+
+    // Accelerometer settings 
+    myIMU.settings.accelSampleRate = 100;  //Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
+    myIMU.settings.accelRange = 2;      //Max G force readable.  Can be: 2, 4, 8, 16
+    myIMU.settings.xAccelEnabled = 1;
+    myIMU.settings.yAccelEnabled = 1;
+    myIMU.settings.zAccelEnabled = 1;
+    //Call .begin() to configure the Accelerometer
     myIMU.begin();
 
     Serial.println();
@@ -92,6 +98,7 @@ void loop() {
       x[counter] = myIMU.readFloatAccelX();
       y[counter] = myIMU.readFloatAccelY();
       z[counter] = myIMU.readFloatAccelZ();
+      Serial.println(x[counter]);
       counter = counter + 1;
       //if ( counter == send_counter) {
       if ((counter % send_counter) == 0) {
