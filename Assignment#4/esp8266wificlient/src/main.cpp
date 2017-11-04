@@ -80,7 +80,7 @@ void setup()
     Serial.println(WiFi.localIP());
 
     // Accelerometer settings 
-    myIMU.settings.accelSampleRate = 100;  //Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
+    myIMU.settings.accelSampleRate = 5000;  //Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
     myIMU.settings.accelRange = 2;      //Max G force readable.  Can be: 2, 4, 8, 16
     myIMU.settings.xAccelEnabled = 1;
     myIMU.settings.yAccelEnabled = 1;
