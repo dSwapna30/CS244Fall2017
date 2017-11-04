@@ -1,58 +1,55 @@
 #include "Arduino.h"
 #include "ESP8266WiFi.h"
 #include "ESP8266HTTPClient.h"
-#include "secret.h"
+//#include "secret.h"
 #include "MAX30105.h"
 #include "Wire.h"
+#include "SparkFunLIS3DH.h"
+#include "SPI.h"
 
+const char* ssid = "UCInet Mobile Access";
+String base_host = "http://169.234.241.150/arduino_simple.php";
 int counter = 0;
-int loop_sample = 0;
+int loop_counter = 0;
+const int counter_limit = 3000;
+const int send_counter = 100;
+
+float x[send_counter+1];
+float y[send_counter+1];
+float z[send_counter+1];
+
+unsigned long start_time = 0;
 
 // Create "secret.h" for "ssid" and "host"
 
 HTTPClient http;
-MAX30105 MAX;
+//MAX30105 MAX;
+LIS3DH myIMU(SPI_MODE, 5); // constructed with parameters for SPI and cs pin number
 
-void sensorSetup(byte powerLevel){
-      Serial.print("setup sensor to: ");
-      Serial.println(String(powerLevel));
-      Serial.println();
+void sendtoWebServer(int c){
 
-      byte sampleAverage = 4;
-      byte ledMode = 2;
-      int sampleRate = 50;
-      int pulseWidth = 411; //Options: 69, 118, 215, 411
-      int adcRange = 2048;
-
-      MAX.setup(powerLevel, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange);
-}
-
-void sendtoWebServer(int sample){
-    uint32_t IR;
-    uint32_t Red;
-
-    MAX.check();
-    if(MAX.available()){
-        IR = MAX.getIR();
-        Red = MAX.getRed();
+    String body_data = "data=";
+    for (int i = 0; i < send_counter; i++) {
+      body_data = body_data + String(c + i) + "," + String(x[i]) + "," + String(y[i]) + "," + String(z[i]) + "\n\r";
     }
+    //Serial.println(body_data);
+    //Serial.println(counter);
     
-    
-    String host = base_host + "?sample=" + sample + "&IR=" + IR + "&RED=" + Red;
-    http.begin(host.c_str());
-    int httpCode = http.GET();
+    http.begin(base_host.c_str());
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    int httpCode = http.POST(body_data);
 
-    //if (httpCode > 0) {
-    //    Serial.print("POST code: ");
-    //    Serial.println(httpCode);
-    //    if (httpCode == HTTP_CODE_OK) {
-    //        Serial.print(host);
-    //        Serial.println(" succeeded");
-    //    }
-    //} else {
-    //    Serial.print("POST failed, error: ");
-    //    Serial.println(http.errorToString(httpCode).c_str());
-    //}
+    if (httpCode > 0) {
+        Serial.print("POST code: ");
+        Serial.println(httpCode);
+        if (httpCode == HTTP_CODE_OK) {
+            Serial.print(base_host);
+            Serial.println(" succeeded");
+        }
+    } else {
+        Serial.print("POST failed, error: ");
+        Serial.println(http.errorToString(httpCode).c_str());
+    }
 
     http.end();
 
@@ -81,37 +78,39 @@ void setup()
     Serial.println("WiFi connected");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
-    
-    if (!MAX.begin(Wire, I2C_SPEED_STANDARD)) //Use default I2C port, 100kHz speed
-    {
-      Serial.println("MAX30105 was not found. Please check wiring/power.");
-      while (1);
-    }
+
+    // Accelerometer settings 
+    myIMU.settings.accelSampleRate = 100;  //Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
+    myIMU.settings.accelRange = 2;      //Max G force readable.  Can be: 2, 4, 8, 16
+    myIMU.settings.xAccelEnabled = 1;
+    myIMU.settings.yAccelEnabled = 1;
+    myIMU.settings.zAccelEnabled = 1;
+    //Call .begin() to configure the Accelerometer
+    myIMU.begin();
 
     Serial.println();
+
+    start_time = millis();
 }
 
-void loop() {
-    if (counter == 0) {
-      loop_sample = 0;
-      sensorSetup(0xFF);
+void loop() {   
+    if (loop_counter < counter_limit) {
+      x[counter] = myIMU.readFloatAccelX();
+      y[counter] = myIMU.readFloatAccelY();
+      z[counter] = myIMU.readFloatAccelZ();
+      Serial.println(x[counter]);
+      counter = counter + 1;
+      //if ( counter == send_counter) {
+      if ((counter % send_counter) == 0) {
+        Serial.println(millis() - start_time);
+        sendtoWebServer(loop_counter - send_counter);
+        //Serial.println("reached");
+        counter = 0;
+      }
     }
-    //if (counter == 6000) {
-    //  loop_sample = 0;
-    //  sensorSetup(0x1F);
-    //}
-    //if (counter == 12000) {
-    //  loop_sample = 0;
-    //  sensorSetup(0x7F);
-    //}
-    //if (counter == 18000) {
-    //  loop_sample = 0;
-    //  sensorSetup(0xFF);
-    //}
-    if (counter < 6000) {
-      sendtoWebServer(loop_sample);
-    }
+    /*if ( counter == send_counter) {
+        sendtoWebServer();
+    }*/
     //Serial.println(counter);
-    loop_sample = loop_sample + 1;
-    counter = counter + 1;
+    loop_counter = loop_counter + 1;
 }
