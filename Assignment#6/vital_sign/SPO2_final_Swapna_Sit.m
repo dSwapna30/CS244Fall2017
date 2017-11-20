@@ -1,19 +1,24 @@
 clc;
 close all;
+clear all;
 
 
-data = csvread('givendata.csv', 1, 0);
+data_swapnasit = csvread('data_sit_swapna_sample.csv', 0, 1,[0,1,5099,3]);
+
+csvwrite('input_Swapnasit.csv',data_swapnasit)
+
+%data = csvread('givendata.csv', 1, 0);
 % disp('data:');
 % display (data);
 
 %AC IR & DC IR:
 
-T = data(:, 1);
+T = data_swapnasit(:, 1);
 
-IR = data(:, 3);
+IR = data_swapnasit(:, 2);
 
 subplot (2,1,1)
-plot(T, IR)
+plot(IR)
 xlabel('time')
 ylabel('IR Data')
 title ('Unfiltered IR Data')
@@ -22,7 +27,7 @@ title ('Unfiltered IR Data')
 fs=50;
 order = 6;
 fcutlow = 1;
-fcuthigh = 2;
+fcuthigh = 1.75;
 [b,a]=butter(order, [fcutlow,fcuthigh]/(fs/2),'bandpass');
 x=filter (b,a,IR);
 subplot (2,1,2)
@@ -33,16 +38,17 @@ title ('Filtered IR Data')
 
 % To calculate R,Q,S Using findpeaks
 
-
-[ir_peak_r,ir_local_r] = findpeaks(x, T, 'MinPeakDistance', 0.6);
+%disp(x');
+[ir_peak_r, ir_local_r] = findpeaks(x,T, 'MinPeakDistance', 0.6);
+%findpeaks(x, 'MinPeakDistance', 0.6);
 IR_inverted = -x;
-
+ 
 [ir_peak_s1,ir_local_s1] = findpeaks(IR_inverted, T, 'MinPeakDistance', 0.6);
 ir_peak_s1 = - ir_peak_s1;
 
 %AC Red & DC Red:
  
-Red = data(:, 2);
+Red = data_swapnasit(:, 3);
 figure
 subplot (2,1,1)
 plot(T, Red)
@@ -53,7 +59,7 @@ title ('Unfiltered Red Data')
 fs=50;
 order = 6;
 fcutlow = 1;
-fcuthigh = 2;
+fcuthigh = 1.75;
 [d,c]=butter(order, [fcutlow,fcuthigh]/(fs/2),'bandpass');
 y=filter (d,c,Red);
 subplot (2,1,2)
@@ -71,12 +77,10 @@ Red_inverted = -y;
 [red_peak_s1,red_local_s1] = findpeaks(Red_inverted, T, 'MinPeakDistance', 0.6);
 red_peak_s1 = red_peak_s1;
 
-
-
 %IR / Red Q(x1,y1), R(x2, y2), S(x3, y3) Coordinate allocation
 
-for n = 1:89
-%for n = 1:(length(red_local_r)-1)
+%for n = 1:130
+for n = 1:(length(red_local_r)-1)
     Rx_red = red_local_r(n);
     Ry_red = red_peak_r(n);
     Sx_red = red_local_s1(n+1);
@@ -117,4 +121,4 @@ display (R);
 display('SPO_2:');
 display (SPO_2);
 
-% csvwrite('SPO2file.csv',SPO_2)
+%csvwrite('SPO2file_Swapnasit.csv',SPO_2)
