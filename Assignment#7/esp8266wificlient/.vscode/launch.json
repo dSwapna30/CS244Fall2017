@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "name": "PlatformIO Debugger",
+            "target": "/home/yoshimichi/Documents/embedded_systems/hw1/esp8266/.pioenvs/thingdev/firmware.elf",
+            "gdbpath": "/home/yoshimichi/.platformio/penv/bin/piodebuggdb",
+            "autorun": [ "source .pioinit" ]
+        }
+    ]
+}
