@@ -17,7 +17,7 @@ table, th, td {
 if (!is_null($_POST['data'])) {
 	$handle = fopen('data.csv', 'a') or die("Unable to open file to write!");
 
-	$input_data = $_POST['data'];
+	$input_data = str_replace("|", "\n", $_POST['data']);
 	fwrite($handle, $input_data);
 
 	fclose($handle);
